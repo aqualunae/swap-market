@@ -14,8 +14,12 @@ public class Board : MonoBehaviour
     [SerializeField]
     private GameObject objectContainer;
 
+    [SerializeField]
+    private int initialSwaps = 10;
+
     private Dictionary<int, TileObject> tileDictionary;
-    int gridWidth;
+    private int gridWidth;
+    private int swaps;
 
     private void Start()
     {
@@ -38,6 +42,22 @@ public class Board : MonoBehaviour
             tileDictionary[index] = obj;
         }
         GetComponent<PlayerInput>().SwitchCurrentActionMap("Market");
+
+        swaps = initialSwaps;
+    }
+
+    // method to update visuals
+    private void Refresh()
+    {
+        for (int i = 0; i < tileDictionary.Count; i++)
+        {
+            TileObject tileObject = tileDictionary[i];
+            if (tileObject != null)
+            {
+                Vector3Int calculatedPosition = new Vector3Int(i % gridWidth, i / gridWidth, 0);
+                tileObject.transform.position = grid.CellToWorld(calculatedPosition) + (grid.cellSize / 2);
+            }
+        }
     }
 
     private Vector2Int defaultValue = new Vector2Int(-1, -1);
@@ -63,20 +83,31 @@ public class Board : MonoBehaviour
                 {
                     int lastIndex = clickedTile.x + (clickedTile.y * gridWidth);
                     TileObject lastObject = tileDictionary[lastIndex];
+                    if (lastObject is CustomerItem && clickedObject is CustomerItem)
+                    {
+                        CustomerItem lastCI = lastObject as CustomerItem;
+                        CustomerItem clickedCI = clickedObject as CustomerItem;
+                        if (lastCI.SaleColor == clickedCI.SaleColor && lastCI.IsItem != clickedCI.IsItem)
+                        {
+                            swaps += 5;
+                            lastCI.canSwap = false;
+                            clickedCI.canSwap = false;
+                        }
+                    }
+
                     tileDictionary[index] = lastObject;
                     tileDictionary[lastIndex] = clickedObject;
                     clickedTile = defaultValue;
-                    Debug.Log("Swapped!");
+                    swaps--;
+                    Refresh();
                     return;
-                }
-                else
-                {
-                    Debug.Log("Not adjacent");
                 }
             }
         }
-        Debug.Log("Not swapped");
     }
 
-    // method to update visuals
+    public int GetSwaps()
+    {
+        return swaps;
+    }
 }

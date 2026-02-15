@@ -5,7 +5,7 @@ public class Scripts
     public enum SaleColor
     {
         red,
-        green,
+        gold,
         blue
     }
 }
