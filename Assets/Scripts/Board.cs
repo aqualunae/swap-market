@@ -99,9 +99,25 @@ public class Board : MonoBehaviour
                     tileDictionary[lastIndex] = clickedObject;
                     clickedTile = defaultValue;
                     swaps--;
+                    if (swaps <= 0)
+                    {
+                        GameOver();
+                    }
                     Refresh();
                     return;
                 }
+            }
+        }
+    }
+
+    private void GameOver()
+    {
+        for (int i = 0; i < tileDictionary.Count; i++)
+        {
+            TileObject tileObject = tileDictionary[i];
+            if (tileObject != null)
+            {
+                tileObject.canSwap = false;
             }
         }
     }
