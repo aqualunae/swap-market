@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
@@ -20,6 +21,7 @@ public class Board : MonoBehaviour
     private Dictionary<int, TileObject> tileDictionary;
     private int gridWidth;
     private int swaps;
+    private int customersAvailable = 0;
 
     private void Start()
     {
@@ -40,6 +42,14 @@ public class Board : MonoBehaviour
             Vector3Int location = grid.WorldToCell(obj.transform.position);
             int index = location.x + (location.y * gridWidth);
             tileDictionary[index] = obj;
+            if (obj is CustomerItem)
+            {
+                CustomerItem customerItem = obj as CustomerItem;
+                if (!customerItem.IsItem)
+                {
+                    customersAvailable++;
+                }
+            }
         }
         GetComponent<PlayerInput>().SwitchCurrentActionMap("Market");
 
@@ -92,6 +102,11 @@ public class Board : MonoBehaviour
                             swaps += 5;
                             lastCI.canSwap = false;
                             clickedCI.canSwap = false;
+                            customersAvailable--;
+                            if (customersAvailable == 0)
+                            {
+                                GameOver(true);
+                            }
                         }
                     }
 
@@ -101,7 +116,7 @@ public class Board : MonoBehaviour
                     swaps--;
                     if (swaps <= 0)
                     {
-                        GameOver();
+                        GameOver(false);
                     }
                     Refresh();
                     return;
@@ -110,7 +125,13 @@ public class Board : MonoBehaviour
         }
     }
 
-    private void GameOver()
+    [SerializeField]
+    private GameObject resultsObject;
+
+    [SerializeField]
+    private TextMeshProUGUI resultsText;
+
+    private void GameOver(bool victory)
     {
         for (int i = 0; i < tileDictionary.Count; i++)
         {
@@ -120,6 +141,9 @@ public class Board : MonoBehaviour
                 tileObject.canSwap = false;
             }
         }
+        
+        resultsObject.SetActive(true);
+        resultsText.text = victory ? "All your customers are satisfied! You won!" : "Your customers are tired and ready to go home. Game over.";
     }
 
     public int GetSwaps()
